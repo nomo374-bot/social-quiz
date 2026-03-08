@@ -66,4 +66,233 @@
         #privacy-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 600px; max-height: 85vh; overflow-y: auto; position: relative; font-size: 14px; text-align: left; }
         .close-modal { position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; }
-        .modal-content h3 { color: var(--color-2); border-left: 4px solid var(--
+        .modal-content h3 { color: var(--color-2); border-left: 4px solid var(--color-2); padding-left: 10px; margin-top: 25px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-banner"></div>
+    <div class="profile-section">
+        <h3 style="margin:0; color: var(--color-10);">董軾社會 Geography Tung</h3>
+        <p style="margin:5px 0 15px 0; font-size: 14px;">致力於社會科教學與數位題庫開發</p>
+        <div class="profile-links">
+            <a href="https://buymeacoffee.com/nomo374" target="_blank" class="coffee-btn"><i class="fa-solid fa-mug-hot"></i> 支持維運</a>
+            <a href="https://www.instagram.com/grantung/" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://www.facebook.com/grantung1993/?locale=zh_TW" target="_blank"><i class="fa-brands fa-facebook"></i></a>
+            <a href="https://www.youtube.com/@geographytung360" target="_blank"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+    </div>
+
+    <div class="header">
+        <h2>自主學習系統</h2>
+        <div id="user-info"></div>
+    </div>
+
+    <div class="content-body">
+        <div id="login-view" style="text-align: center; padding: 40px 0;">
+            <p>歡迎使用！請先登入以同步您的紀錄</p>
+            <button onclick="login()" class="btn-main" style="background: #4285F4; max-width: 280px;"><i class="fa-brands fa-google"></i> Google 帳號登入</button>
+        </div>
+
+        <div id="setup-view" class="hidden">
+            <div class="setup-box">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-book"></i> 選擇科目</label>
+                    <select id="sub-select" onchange="refreshChapters()">
+                        <option value="H">歷史</option>
+                        <option value="G">地理</option>
+                        <option value="C">公民</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-layer-group"></i> 選擇單元</label>
+                    <select id="chap-select"></select>
+                </div>
+                <button class="btn-main" onclick="startTest()"><i class="fa-solid fa-play"></i> 開始測驗</button>
+                <div class="btn-row">
+                    <button class="btn-main btn-fav" onclick="showFavorites()"><i class="fa-solid fa-bookmark"></i> 我的收藏</button>
+                    <button class="btn-main btn-mistake" onclick="showMistakes()"><i class="fa-solid fa-circle-xmark"></i> 錯題本</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="quiz-view" class="hidden">
+            <div id="quiz-content"></div>
+            <button class="btn-main" style="background:var(--color-1); margin-top:20px;" onclick="location.reload()"><i class="fa-solid fa-house"></i> 返回首頁</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-links">
+        <a href="javascript:void(0)" onclick="togglePrivacy(true)">學習個資保護宣告</a>
+        <a href="mailto:nomo374@gmail.com">聯繫我們</a>
+    </div>
+    <div class="copyright">
+        &copy; 2026 董軾社會 Geography Tung. All Rights Reserved.<br>
+        本站廣告收益將專款專用於支應雲端伺服器與資料庫運算費用。
+    </div>
+</footer>
+
+<div id="privacy-modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="togglePrivacy(false)">&times;</span>
+        <h2 style="color: var(--color-2); border-bottom: 2px solid var(--color-4); padding-bottom: 10px;">學習個資保護宣告</h2>
+        <p>歡迎使用董軾社會自主學習系統。為了在提供優質練習環境的同時保障您的隱私，我們參考中華民國個資法與 GDPR 精神訂定以下政策：</p>
+        
+        <h3>一、安全維護承諾</h3>
+        <p>您的練習數據（包含收藏、錯題）對我們而言是非常重要的學習軌跡。我們採用合理之加密技術保護資料，並承諾絕不隨意對外公開您的個人資訊。</p>
+        
+        <h3>二、資訊蒐集與應用</h3>
+        <p>當您使用 Google 帳號登入時，本站會紀錄您的顯示名稱及學習紀錄。這些資訊僅用於「錯題本」回顧功能以及董老師進行題庫優化分析，不會轉讓給第三方機構。</p>
+        
+        <h3>三、第三方技術與 Cookie</h3>
+        <p>本站使用 Cookie 維持登入狀態，並與 Google 等服務夥伴合作提供分析與廣告。合作夥伴可能會收集您的瀏覽行為以提供個人化內容。您可以隨時透過瀏覽器設定關閉 Cookie 存取。</p>
+        
+        <h3>四、您的權力行使</h3>
+        <p>您可以隨時清除 Cookie 移除本機紀錄。若有刪除雲端學習數據之需求，請聯繫管理員處理。</p>
+        
+        <h3>五、外部連結說明</h3>
+        <p>本站可能包含外部教學資源連結，因該連結不屬於本站管理範圍，其內容及政策請參閱各該網站之宣告。</p>
+        
+        <p style="margin-top:25px; font-size: 11px; opacity: 0.6;">最後修訂日期：2026年3月9日</p>
+        <button class="btn-main" style="margin-top:20px;" onclick="togglePrivacy(false)">同意並進入系統</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDyLtHX57VSyp8Y0uyCmx6uE--QOrBbNW8",
+        authDomain: "question-bank-3aae2.firebaseapp.com",
+        projectId: "question-bank-3aae2",
+        storageBucket: "question-bank-3aae2.firebasestorage.app",
+        messagingSenderId: "692164298143",
+        appId: "1:692164298143:web:439cebfe20a3847e09a9aa",
+        measurementId: "G-CFQE6N3CS6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+    let currentUser = null;
+    let userBookmarks = []; 
+    let userMistakes = [];  
+
+    window.togglePrivacy = (show) => document.getElementById('privacy-modal').style.display = show ? 'flex' : 'none';
+    window.login = () => signInWithPopup(auth, provider).catch(err => alert("登入取消或失敗"));
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('setup-view').classList.remove('hidden');
+            document.getElementById('user-info').innerHTML = `<small>您好, ${user.displayName}</small>`;
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                userBookmarks = data.bookmarks || [];
+                userMistakes = data.mistakes || [];
+            } else {
+                await setDoc(userRef, { bookmarks: [], mistakes: [] });
+            }
+            window.refreshChapters();
+        }
+    });
+
+    window.refreshChapters = () => {
+        const sub = document.getElementById('sub-select').value;
+        const chapSelect = document.getElementById('chap-select');
+        chapSelect.innerHTML = '<option value="ALL">全部範圍</option>';
+        const stats = {};
+        if (typeof fullQuestionBank !== 'undefined') {
+            fullQuestionBank.filter(q => q.sub === sub).forEach(q => {
+                if (q.chap) stats[q.chap] = (stats[q.chap] || 0) + 1;
+            });
+            for (const [name, count] of Object.entries(stats)) {
+                const opt = document.createElement('option');
+                opt.value = name; opt.textContent = `${name} (${count} 題)`;
+                chapSelect.appendChild(opt);
+            }
+        }
+    };
+
+    window.startTest = () => {
+        const sub = document.getElementById('sub-select').value;
+        const chap = document.getElementById('chap-select').value;
+        let pool = fullQuestionBank.filter(q => q.sub === sub && (chap === 'ALL' || q.chap === chap) && q.type !== 'group_question');
+        pool.sort(() => Math.random() - 0.5);
+        renderDisplay("📖 隨機練習模式", pool.slice(0, 20));
+    };
+
+    window.showFavorites = () => {
+        if (userBookmarks.length === 0) return alert("您的收藏夾是空的喔！");
+        const pool = fullQuestionBank.filter(q => userBookmarks.includes(q.id));
+        renderDisplay("🔖 我的收藏題目", pool);
+    };
+
+    window.showMistakes = () => {
+        if (userMistakes.length === 0) return alert("目前沒有錯題紀錄！");
+        const pool = fullQuestionBank.filter(q => userMistakes.includes(q.id));
+        renderDisplay("❌ 我的錯題本", pool);
+    };
+
+    window.checkAns = async (qid, userSelect, correctAns) => {
+        const card = document.getElementById(`card-${qid}`);
+        const ana = document.getElementById(`ans-${qid}`);
+        const optsDiv = document.getElementById(`options-${qid}`);
+        ana.style.display = 'block';
+        Array.from(optsDiv.getElementsByTagName('button')).forEach(b => b.disabled = true);
+        if (userSelect == correctAns) {
+            card.style.borderColor = "var(--success)";
+        } else {
+            card.style.borderColor = "var(--color-10)";
+            if (!userMistakes.includes(qid)) {
+                userMistakes.push(qid);
+                await updateDoc(doc(db, "users", currentUser.uid), { mistakes: arrayUnion(qid) }).catch(()=>{});
+            }
+        }
+    };
+
+    window.toggleFav = async (qid) => {
+        if (!currentUser) return alert("請先登入");
+        const icon = document.getElementById(`fav-${qid}`);
+        const userRef = doc(db, "users", currentUser.uid);
+        if (userBookmarks.includes(qid)) {
+            userBookmarks = userBookmarks.filter(id => id !== qid);
+            icon.classList.remove('active');
+            await updateDoc(userRef, { bookmarks: arrayRemove(qid) });
+        } else {
+            userBookmarks.push(qid);
+            icon.classList.add('active');
+            await updateDoc(userRef, { bookmarks: arrayUnion(qid) });
+        }
+    };
+
+    function renderDisplay(title, questions) {
+        const content = document.getElementById('quiz-content');
+        document.getElementById('setup-view').classList.add('hidden');
+        document.getElementById('quiz-view').classList.remove('hidden');
+        content.innerHTML = `<h2>${title}</h2>`;
+        questions.forEach(q => {
+            const isFav = userBookmarks.includes(q.id) ? 'active' : '';
+            content.innerHTML += `
+                <div class="quiz-card" id="card-${q.id}">
+                    <svg class="fav-icon ${isFav}" id="fav-${q.id}" onclick="toggleFav('${q.id}')" viewBox="0 0 24 24"><path d="M5 3H19C20.1 3 21 3.9 21 5V21L12 17.25L3 21V5C3 3.9 3.9 3 5 3Z" /></svg>
+                    <p><b>[${q.chap || '單元'}]</b> ${q.q}</p>
+                    ${q.img ? `<img src="${q.img}">` : ''}
+                    <div id="options-${q.id}">${q.opts.map((o, i) => `<button class="option-btn" onclick="checkAns('${q.id}', ${i+1}, ${q.ans})">${o}</button>`).join('')}</div>
+                    <div id="ans-${q.id}" class="analysis"><b>正確答案 (${q.ans})：</b>${q.analysis || '目前無解析'}</div>
+                </div>`;
+        });
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>
