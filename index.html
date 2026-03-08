@@ -16,42 +16,33 @@
 
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--color-1); margin: 0; padding: 10px; line-height: 1.6; }
         .container { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
         .top-banner { width: 100%; height: 250px; background: url('https://i.postimg.cc/ts7vLtsQ/image.jpg') center/cover no-repeat; }
-
         .profile-section { padding: 25px; background: var(--color-5); text-align: center; border-bottom: 5px solid var(--color-4); }
         .profile-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 15px; }
         .profile-links a { color: var(--color-1); text-decoration: none; font-size: 22px; transition: 0.3s; }
         .profile-links a:hover { color: var(--color-2); transform: translateY(-3px); }
         .coffee-btn { background: #FFDD00; color: #000 !important; padding: 8px 15px; border-radius: 50px; font-size: 14px !important; font-weight: bold; display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-decoration: none; }
-
         .header { background: var(--color-1); color: #fff; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .header h2 { margin: 0; font-size: 24px; letter-spacing: 2px; }
-
         .content-body { padding: 25px; }
         .hidden { display: none; }
-        
         .setup-box { background: #fdfdfd; border: 2px solid var(--color-4); padding: 25px; border-radius: 15px; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--color-2); }
         select, input { width: 100%; padding: 12px; border: 2px solid var(--color-5); border-radius: 10px; font-size: 16px; outline: none; box-sizing: border-box; }
-
         .btn-main { width: 100%; padding: 15px; background: var(--color-2); color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; transition: 0.3s; font-weight: bold; }
         .btn-main:hover { background: var(--color-3); }
         .btn-row { display: flex; gap: 12px; margin-top: 12px; }
         .btn-row .btn-main { flex: 1; font-size: 16px; }
         .btn-mistake { background: var(--color-8); }
         .btn-fav { background: var(--color-3); }
-
         .quiz-card { position: relative; border: 2px solid var(--color-5); padding: 25px; border-radius: 15px; margin-bottom: 25px; background: #fff; transition: 0.3s; }
         .passage-box { background: var(--color-5); padding: 15px; border-left: 6px solid var(--color-2); margin-bottom: 15px; font-weight: 500; border-radius: 4px; }
         .option-btn { display: block; width: 100%; text-align: left; padding: 14px; margin: 10px 0; border: 2px solid var(--color-5); border-radius: 10px; background: #fff; cursor: pointer; font-size: 16px; transition: 0.2s; }
         .option-btn:hover { background: var(--color-5); }
-
         .fav-icon { position: absolute; right: 20px; top: 20px; cursor: pointer; width: 28px; height: 28px; }
         .fav-icon path { fill: none; stroke: #ccc; stroke-width: 2; }
         .fav-icon.active path { fill: var(--color-10); stroke: var(--color-10); }
-        
         .analysis { display: none; margin-top: 15px; padding: 15px; background: var(--color-5); border-radius: 10px; border-left: 5px solid var(--color-6); }
         img { max-width: 100%; border-radius: 10px; margin: 15px 0; }
         .result-tag { display: inline-block; padding: 5px 12px; border-radius: 6px; color: white; font-weight: bold; margin-bottom: 10px; }
@@ -63,7 +54,6 @@
 
 <div class="container">
     <div class="top-banner"></div>
-
     <div class="profile-section">
         <h3 style="margin:0; color: var(--color-10);">董軾社會 Geography Tung</h3>
         <p style="margin:5px 0 15px 0; font-size: 14px;">致力於社會科教學與數位題庫開發</p>
@@ -75,18 +65,15 @@
             <a href="https://medium.com/@nomo374" target="_blank"><i class="fa-brands fa-medium"></i></a>
         </div>
     </div>
-
     <div class="header">
         <h2>自主學習系統</h2>
         <div id="user-info"></div>
     </div>
-
     <div class="content-body">
         <div id="login-view" style="text-align: center; padding: 40px 0;">
             <p>歡迎使用！請先登入以同步您的紀錄</p>
             <button onclick="login()" class="btn-main" style="background: #4285F4; max-width: 280px;"><i class="fa-brands fa-google"></i> Google 帳號登入</button>
         </div>
-
         <div id="setup-view" class="hidden">
             <div class="setup-box">
                 <div class="form-group">
@@ -112,7 +99,6 @@
                 </div>
             </div>
         </div>
-
         <div id="quiz-view" class="hidden">
             <div id="quiz-content"></div>
             <button class="btn-main" style="background:var(--color-1); margin-top:20px;" onclick="location.reload()"><i class="fa-solid fa-house"></i> 返回首頁</button>
@@ -144,30 +130,8 @@
     let userBookmarks = []; 
     let userMistakes = [];  
 
-    // 將函數掛載到 window，解決 Module 作用域問題
-    window.login = () => {
-        signInWithPopup(auth, provider).catch(err => alert("登入失敗: " + err.message));
-    };
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('setup-view').classList.remove('hidden');
-            document.getElementById('user-info').innerHTML = `<small>您好, ${user.displayName}</small>`;
-            
-            const userRef = doc(db, "users", user.uid);
-            const snap = await getDoc(userRef);
-            if (snap.exists()) {
-                const data = snap.data();
-                userBookmarks = data.bookmarks || [];
-                userMistakes = data.mistakes || [];
-            } else {
-                await setDoc(userRef, { bookmarks: [], mistakes: [] });
-            }
-            window.refreshChapters();
-        }
-    });
+    // 將所有函數掛載到 window，解決 onclick 呼叫不到的問題
+    window.login = () => signInWithPopup(auth, provider).catch(err => alert("登入失敗: " + err.message));
 
     window.refreshChapters = () => {
         const sub = document.getElementById('sub-select').value;
@@ -208,46 +172,6 @@
         renderDisplay("❌ 我的錯題本", pool);
     };
 
-    function renderDisplay(title, questions) {
-        const view = document.getElementById('quiz-view');
-        const content = document.getElementById('quiz-content');
-        document.getElementById('setup-view').classList.add('hidden');
-        view.classList.remove('hidden');
-        content.innerHTML = `<h2>${title}</h2>`;
-
-        questions.forEach(q => {
-            if (q.type === 'group_header') {
-                const children = fullQuestionBank.filter(i => i.p_id === q.id);
-                content.innerHTML += `<div class="passage-box">${q.q} ${q.img ? `<img src="${q.img}">` : ''}</div>`;
-                children.forEach(sq => content.innerHTML += createCard(sq));
-            } else {
-                content.innerHTML += createCard(q);
-            }
-        });
-    }
-
-    function createCard(q) {
-        const isFav = userBookmarks.includes(q.id) ? 'active' : '';
-        const bookmarkIcon = `
-            <svg class="fav-icon ${isFav}" id="fav-${q.id}" onclick="toggleFav('${q.id}')" viewBox="0 0 24 24">
-                <path d="M5 3H19C20.1 3 21 3.9 21 5V21L12 17.25L3 21V5C3 3.9 3.9 3 5 3Z" />
-            </svg>
-        `;
-        return `
-            <div class="quiz-card" id="card-${q.id}">
-                ${bookmarkIcon}
-                <p><b>[${q.chap || '單元'}]</b> ${q.q}</p>
-                ${q.img ? `<img src="${q.img}">` : ''}
-                <div id="options-${q.id}">
-                    ${q.opts.map((opt, i) => `
-                        <button class="option-btn" onclick="checkAns('${q.id}', ${i+1}, ${q.ans})">${opt}</button>
-                    `).join('')}
-                </div>
-                <div id="ans-${q.id}" class="analysis"><b>正確答案 (${q.ans})：</b>${q.analysis || '目前無解析'}</div>
-            </div>
-        `;
-    }
-
     window.checkAns = async (qid, userSelect, correctAns) => {
         const card = document.getElementById(`card-${qid}`);
         const ana = document.getElementById(`ans-${qid}`);
@@ -264,24 +188,77 @@
             if (!userMistakes.includes(qid)) {
                 userMistakes.push(qid);
                 const userRef = doc(db, "users", currentUser.uid);
-                await updateDoc(userRef, { mistakes: arrayUnion(qid) });
+                await updateDoc(userRef, { mistakes: arrayUnion(qid) }).catch(() => {});
             }
         }
     };
 
     window.toggleFav = async (qid) => {
+        if (!currentUser) return alert("請先登入");
         const userRef = doc(db, "users", currentUser.uid);
         const icon = document.getElementById(`fav-${qid}`);
         if (userBookmarks.includes(qid)) {
             userBookmarks = userBookmarks.filter(id => id !== qid);
             icon.classList.remove('active');
-            await updateDoc(userRef, { bookmarks: arrayRemove(qid) });
+            await updateDoc(userRef, { bookmarks: arrayRemove(qid) }).catch(() => {});
         } else {
             userBookmarks.push(qid);
             icon.classList.add('active');
-            await updateDoc(userRef, { bookmarks: arrayUnion(qid) });
+            await updateDoc(userRef, { bookmarks: arrayUnion(qid) }).catch(() => {});
         }
     };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('setup-view').classList.remove('hidden');
+            document.getElementById('user-info').innerHTML = `<small>您好, ${user.displayName}</small>`;
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                userBookmarks = data.bookmarks || [];
+                userMistakes = data.mistakes || [];
+            } else {
+                await setDoc(userRef, { bookmarks: [], mistakes: [] });
+            }
+            window.refreshChapters();
+        }
+    });
+
+    function renderDisplay(title, questions) {
+        const view = document.getElementById('quiz-view');
+        const content = document.getElementById('quiz-content');
+        document.getElementById('setup-view').classList.add('hidden');
+        view.classList.remove('hidden');
+        content.innerHTML = `<h2>${title}</h2>`;
+        questions.forEach(q => {
+            if (q.type === 'group_header') {
+                const children = fullQuestionBank.filter(i => i.p_id === q.id);
+                content.innerHTML += `<div class="passage-box">${q.q} ${q.img ? `<img src="${q.img}">` : ''}</div>`;
+                children.forEach(sq => content.innerHTML += createCard(sq));
+            } else {
+                content.innerHTML += createCard(q);
+            }
+        });
+    }
+
+    function createCard(q) {
+        const isFav = userBookmarks.includes(q.id) ? 'active' : '';
+        const bookmarkIcon = `<svg class="fav-icon ${isFav}" id="fav-${q.id}" onclick="toggleFav('${q.id}')" viewBox="0 0 24 24"><path d="M5 3H19C20.1 3 21 3.9 21 5V21L12 17.25L3 21V5C3 3.9 3.9 3 5 3Z" /></svg>`;
+        return `
+            <div class="quiz-card" id="card-${q.id}">
+                ${bookmarkIcon}
+                <p><b>[${q.chap || '單元'}]</b> ${q.q}</p>
+                ${q.img ? `<img src="${q.img}">` : ''}
+                <div id="options-${q.id}">
+                    ${q.opts.map((opt, i) => `<button class="option-btn" onclick="checkAns('${q.id}', ${i+1}, ${q.ans})">${opt}</button>`).join('')}
+                </div>
+                <div id="ans-${q.id}" class="analysis"><b>正確答案 (${q.ans})：</b>${q.analysis || '目前無解析'}</div>
+            </div>
+        `;
+    }
 </script>
 </body>
 </html>
