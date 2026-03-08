@@ -40,4 +40,217 @@
         .analysis { display: none; margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107; }
         img { max-width: 100%; border-radius: 8px; margin: 10px 0; display: block; }
         .result-tag { display: inline-block; padding: 4px 10px; border-radius: 4px; color: white; font-weight: bold; margin-bottom: 10px; }
-        .tag-wrong { background: var
+        .tag-wrong { background: var(--accent); }
+        .tag-correct { background: var(--success); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 style="margin:0">🎓 董軾社會</h2>
+        <div id="user-info"></div>
+    </div>
+
+    <div id="login-view" style="text-align: center; padding: 60px 0;">
+        <p>歡迎回來！請登入以同步您的學習紀錄</p>
+        <button onclick="login()" class="btn-main" style="background: #4285F4; max-width: 250px;">Google 帳號登入</button>
+    </div>
+
+    <div id="setup-view" class="hidden">
+        <div class="setup-box">
+            <div class="form-group">
+                <label>選擇科目</label>
+                <select id="sub-select" onchange="refreshChapters()">
+                    <option value="H">歷史</option>
+                    <option value="G">地理</option>
+                    <option value="C">公民</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>選擇單元</label>
+                <select id="chap-select"></select>
+            </div>
+            <div class="form-group">
+                <label>練習題數 (留空則全部)</label>
+                <input type="number" id="quiz-count" placeholder="例如: 10">
+            </div>
+            <button class="btn-main" onclick="startTest()">開始測驗</button>
+            <div class="btn-row">
+                <button class="btn-main btn-fav" onclick="showFavorites()">🔖 我的收藏</button>
+                <button class="btn-main btn-mistake" onclick="showMistakes()">❌ 錯題本</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-view" class="hidden">
+        <div id="quiz-content"></div>
+        <button class="btn-main" style="background:#6c757d; margin-top:20px;" onclick="location.reload()">返回主選單</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDyLtHX57VSyp8Y0uyCmx6uE--QOrBbNW8",
+        authDomain: "question-bank-3aae2.firebaseapp.com",
+        projectId: "question-bank-3aae2",
+        storageBucket: "question-bank-3aae2.firebasestorage.app",
+        messagingSenderId: "692164298143",
+        appId: "1:692164298143:web:439cebfe20a3847e09a9aa",
+        measurementId: "G-CFQE6N3CS6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let userBookmarks = []; 
+    let userMistakes = [];  
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('setup-view').classList.remove('hidden');
+            document.getElementById('user-info').innerHTML = `<small>Hi, ${user.displayName}</small>`;
+            
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                userBookmarks = data.bookmarks || [];
+                userMistakes = data.mistakes || [];
+            } else {
+                await setDoc(userRef, { bookmarks: [], mistakes: [] });
+            }
+            refreshChapters();
+        }
+    });
+
+    window.login = () => signInWithPopup(auth, provider).catch(err => alert("登入失敗"));
+
+    window.refreshChapters = () => {
+        const sub = document.getElementById('sub-select').value;
+        const chapSelect = document.getElementById('chap-select');
+        chapSelect.innerHTML = '<option value="ALL">全部範圍</option>';
+        const stats = {};
+        if (typeof fullQuestionBank !== 'undefined') {
+            fullQuestionBank.filter(q => q.sub === sub).forEach(q => {
+                if (q.chap) stats[q.chap] = (stats[q.chap] || 0) + 1;
+            });
+            for (const [name, count] of Object.entries(stats)) {
+                const opt = document.createElement('option');
+                opt.value = name; opt.textContent = `${name} (${count} 題)`;
+                chapSelect.appendChild(opt);
+            }
+        }
+    };
+
+    window.startTest = () => {
+        const sub = document.getElementById('sub-select').value;
+        const chap = document.getElementById('chap-select').value;
+        const countInput = document.getElementById('quiz-count').value;
+        let pool = fullQuestionBank.filter(q => q.sub === sub && (chap === 'ALL' || q.chap === chap) && q.type !== 'group_question');
+        pool.sort(() => Math.random() - 0.5);
+        if (countInput) pool = pool.slice(0, parseInt(countInput));
+        renderDisplay("📖 練習模式", pool);
+    };
+
+    // 顯示收藏夾
+    window.showFavorites = () => {
+        if (userBookmarks.length === 0) return alert("您的收藏夾還是空的喔！");
+        const pool = fullQuestionBank.filter(q => userBookmarks.includes(q.id));
+        renderDisplay("🔖 我的收藏題目", pool);
+    };
+
+    // 顯示錯題本
+    window.showMistakes = () => {
+        if (userMistakes.length === 0) return alert("目前沒有錯題紀錄，繼續保持！");
+        const pool = fullQuestionBank.filter(q => userMistakes.includes(q.id));
+        renderDisplay("❌ 我的錯題本", pool);
+    };
+
+    function renderDisplay(title, questions) {
+        const view = document.getElementById('quiz-view');
+        const content = document.getElementById('quiz-content');
+        document.getElementById('setup-view').classList.add('hidden');
+        view.classList.remove('hidden');
+        content.innerHTML = `<h2>${title}</h2>`;
+
+        questions.forEach(q => {
+            if (q.type === 'group_header') {
+                const children = fullQuestionBank.filter(i => i.p_id === q.id);
+                content.innerHTML += `<div class="passage-box">${q.q} ${q.img ? `<img src="${q.img}">` : ''}</div>`;
+                children.forEach(sq => content.innerHTML += createCard(sq));
+            } else {
+                content.innerHTML += createCard(q);
+            }
+        });
+    }
+
+    function createCard(q) {
+        const isFav = userBookmarks.includes(q.id) ? 'active' : '';
+        // IG Style Bookmark SVG
+        const bookmarkIcon = `
+            <svg class="fav-icon ${isFav}" id="fav-${q.id}" onclick="toggleFav('${q.id}')" viewBox="0 0 24 24">
+                <path d="M5 3H19C20.1 3 21 3.9 21 5V21L12 17.25L3 21V5C3 3.9 3.9 3 5 3Z" />
+            </svg>
+        `;
+        return `
+            <div class="quiz-card" id="card-${q.id}">
+                ${bookmarkIcon}
+                <p><b>[${q.chap || '單元'}]</b> ${q.q}</p>
+                ${q.img ? `<img src="${q.img}">` : ''}
+                <div id="options-${q.id}">
+                    ${q.opts.map((opt, i) => `
+                        <button class="option-btn" onclick="checkAns('${q.id}', ${i+1}, ${q.ans})">${opt}</button>
+                    `).join('')}
+                </div>
+                <div id="ans-${q.id}" class="analysis"><b>正確答案為 (${q.ans})。解析：</b>${q.analysis || '目前無解析'}</div>
+            </div>
+        `;
+    }
+
+    window.checkAns = async (qid, userSelect, correctAns) => {
+        const card = document.getElementById(`card-${qid}`);
+        const ana = document.getElementById(`ans-${qid}`);
+        const optsDiv = document.getElementById(`options-${qid}`);
+        ana.style.display = 'block';
+        Array.from(optsDiv.getElementsByTagName('button')).forEach(b => b.disabled = true);
+
+        if (userSelect == correctAns) {
+            card.style.borderColor = "#27ae60";
+            card.insertAdjacentHTML('afterbegin', '<span class="result-tag tag-correct">正確</span>');
+        } else {
+            card.style.borderColor = "#e74c3c";
+            card.insertAdjacentHTML('afterbegin', '<span class="result-tag tag-wrong">答錯</span>');
+            if (!userMistakes.includes(qid)) {
+                userMistakes.push(qid);
+                const userRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userRef, { mistakes: arrayUnion(qid) });
+            }
+        }
+    };
+
+    window.toggleFav = async (qid) => {
+        const userRef = doc(db, "users", currentUser.uid);
+        const icon = document.getElementById(`fav-${qid}`);
+        if (userBookmarks.includes(qid)) {
+            userBookmarks = userBookmarks.filter(id => id !== qid);
+            icon.classList.remove('active');
+            await updateDoc(userRef, { bookmarks: arrayRemove(qid) });
+        } else {
+            userBookmarks.push(qid);
+            icon.classList.add('active');
+            await updateDoc(userRef, { bookmarks: arrayUnion(qid) });
+        }
+    };
+</script>
+</body>
+</html>
