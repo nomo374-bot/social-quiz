@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>董軾社會 - 自主學習系統</title>
+    <title>董軾社會 - 自主學習與錯題系統</title>
     <script src="questions.js"></script>
     <style>
         :root { --primary: #2c3e50; --accent: #e74c3c; --success: #27ae60; --warning: #f39c12; --bg: #f4f7f6; }
@@ -19,9 +19,10 @@
         select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 5px; }
         .btn-row { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-row .btn-main { flex: 1; font-size: 16px; }
+        .btn-row .btn-main { flex: 1; font-size: 16px; padding: 12px; }
         .btn-mistake { background: var(--warning); }
         .btn-fav { background: #3498db; }
+        .btn-main:hover { opacity: 0.9; }
 
         /* 題目卡片 */
         .quiz-card { position: relative; border: 2px solid #eee; padding: 20px; border-radius: 12px; margin-bottom: 25px; background: #fff; }
@@ -32,13 +33,14 @@
         /* IG 風格書籤符號 */
         .fav-icon { 
             position: absolute; right: 15px; top: 15px; cursor: pointer; 
-            width: 24px; height: 24px; transition: 0.2s;
+            width: 26px; height: 26px; transition: 0.2s;
         }
-        .fav-icon path { fill: none; stroke: #bbb; stroke-width: 2; }
-        .fav-icon.active path { fill: #333; stroke: #333; }
+        .fav-icon path { fill: none; stroke: #8e8e8e; stroke-width: 2; }
+        .fav-icon.active path { fill: #262626; stroke: #262626; }
         
         .analysis { display: none; margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107; }
         img { max-width: 100%; border-radius: 8px; margin: 10px 0; display: block; }
+        
         .result-tag { display: inline-block; padding: 4px 10px; border-radius: 4px; color: white; font-weight: bold; margin-bottom: 10px; }
         .tag-wrong { background: var(--accent); }
         .tag-correct { background: var(--success); }
@@ -94,6 +96,7 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // 您的 Firebase 金鑰設定
     const firebaseConfig = {
         apiKey: "AIzaSyDyLtHX57VSyp8Y0uyCmx6uE--QOrBbNW8",
         authDomain: "question-bank-3aae2.firebaseapp.com",
@@ -113,6 +116,7 @@
     let userBookmarks = []; 
     let userMistakes = [];  
 
+    // 監聽登入狀態
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
@@ -120,6 +124,7 @@
             document.getElementById('setup-view').classList.remove('hidden');
             document.getElementById('user-info').innerHTML = `<small>Hi, ${user.displayName}</small>`;
             
+            // 讀取該學生的收藏與錯題紀錄
             const userRef = doc(db, "users", user.uid);
             const snap = await getDoc(userRef);
             if (snap.exists()) {
@@ -127,14 +132,16 @@
                 userBookmarks = data.bookmarks || [];
                 userMistakes = data.mistakes || [];
             } else {
+                // 初次登入的學生，建立空白資料
                 await setDoc(userRef, { bookmarks: [], mistakes: [] });
             }
             refreshChapters();
         }
     });
 
-    window.login = () => signInWithPopup(auth, provider).catch(err => alert("登入失敗"));
+    window.login = () => signInWithPopup(auth, provider).catch(err => console.error("Login failed", err));
 
+    // 依科目刷新章節清單
     window.refreshChapters = () => {
         const sub = document.getElementById('sub-select').value;
         const chapSelect = document.getElementById('chap-select');
@@ -152,30 +159,34 @@
         }
     };
 
+    // 開始測驗邏輯
     window.startTest = () => {
         const sub = document.getElementById('sub-select').value;
         const chap = document.getElementById('chap-select').value;
         const countInput = document.getElementById('quiz-count').value;
+        
         let pool = fullQuestionBank.filter(q => q.sub === sub && (chap === 'ALL' || q.chap === chap) && q.type !== 'group_question');
         pool.sort(() => Math.random() - 0.5);
         if (countInput) pool = pool.slice(0, parseInt(countInput));
+
         renderDisplay("📖 練習模式", pool);
     };
 
     // 顯示收藏夾
     window.showFavorites = () => {
-        if (userBookmarks.length === 0) return alert("您的收藏夾還是空的喔！");
+        if (userBookmarks.length === 0) return alert("您的收藏夾是空的喔！");
         const pool = fullQuestionBank.filter(q => userBookmarks.includes(q.id));
         renderDisplay("🔖 我的收藏題目", pool);
     };
 
     // 顯示錯題本
     window.showMistakes = () => {
-        if (userMistakes.length === 0) return alert("目前沒有錯題紀錄，繼續保持！");
+        if (userMistakes.length === 0) return alert("目前沒有錯題紀錄，太厲害了！");
         const pool = fullQuestionBank.filter(q => userMistakes.includes(q.id));
         renderDisplay("❌ 我的錯題本", pool);
     };
 
+    // 渲染畫面
     function renderDisplay(title, questions) {
         const view = document.getElementById('quiz-view');
         const content = document.getElementById('quiz-content');
@@ -194,9 +205,9 @@
         });
     }
 
+    // 建立題目卡片 (含 IG Style Bookmark)
     function createCard(q) {
         const isFav = userBookmarks.includes(q.id) ? 'active' : '';
-        // IG Style Bookmark SVG
         const bookmarkIcon = `
             <svg class="fav-icon ${isFav}" id="fav-${q.id}" onclick="toggleFav('${q.id}')" viewBox="0 0 24 24">
                 <path d="M5 3H19C20.1 3 21 3.9 21 5V21L12 17.25L3 21V5C3 3.9 3.9 3 5 3Z" />
@@ -217,10 +228,12 @@
         `;
     }
 
+    // 檢查答案與紀錄錯題
     window.checkAns = async (qid, userSelect, correctAns) => {
         const card = document.getElementById(`card-${qid}`);
         const ana = document.getElementById(`ans-${qid}`);
         const optsDiv = document.getElementById(`options-${qid}`);
+        
         ana.style.display = 'block';
         Array.from(optsDiv.getElementsByTagName('button')).forEach(b => b.disabled = true);
 
@@ -230,6 +243,7 @@
         } else {
             card.style.borderColor = "#e74c3c";
             card.insertAdjacentHTML('afterbegin', '<span class="result-tag tag-wrong">答錯</span>');
+            // 自動同步錯題紀錄到雲端
             if (!userMistakes.includes(qid)) {
                 userMistakes.push(qid);
                 const userRef = doc(db, "users", currentUser.uid);
@@ -238,6 +252,7 @@
         }
     };
 
+    // 收藏/取消收藏功能
     window.toggleFav = async (qid) => {
         const userRef = doc(db, "users", currentUser.uid);
         const icon = document.getElementById(`fav-${qid}`);
